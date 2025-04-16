@@ -4,6 +4,9 @@
 			class="w-full max-w-sm bg-white rounded-2xl shadow-md p-6 space-y-4"
 		>
 			<div class="flex flex-col">
+				<h1 class="self-center mb-6 text-lg text-gray-700 font-medium">
+					Welcome to Chirp!
+				</h1>
 				<img
 					src="@/assets/chirp.png"
 					alt="Chirp logo"
