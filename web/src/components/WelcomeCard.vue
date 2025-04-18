@@ -4,7 +4,6 @@
 			v-if="!connected"
 			class="w-full max-w-sm bg-white rounded-2xl shadow-md p-6 space-y-4"
 		>
-			<!-- Join/Create View -->
 			<div class="flex flex-col">
 				<h1 class="self-center mb-6 text-lg text-gray-700 font-medium">
 					Join or create a room and enjoy!
@@ -18,13 +17,18 @@
 				<label
 					for="username"
 					class="text-gray-700 font-medium mb-1"
-					>Username*</label
+					>Username</label
 				>
 				<input
 					id="username"
 					type="text"
 					v-model="username"
-					class="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					:class="[
+						'border rounded-md px-4 py-2 focus:outline-none focus:ring-2',
+						invalidUsername
+							? 'border-red-500 focus:ring-red-500'
+							: 'border-gray-300 focus:ring-blue-500',
+					]"
 				/>
 
 				<label
@@ -53,7 +57,6 @@
 
 				<button
 					class="w-full bg-blue-500 text-white font-medium py-2 rounded-md hover:bg-blue-600 transition-colors"
-					:disabled="!username"
 					@click="createRoom"
 				>
 					Create a room
@@ -104,6 +107,7 @@
 	import { ref, onBeforeUnmount } from "vue";
 
 	const username = ref("");
+	const invalidUsername = ref(false);
 	const room = ref("");
 	const message = ref("");
 	const messages = ref([]);
@@ -135,9 +139,19 @@
 	};
 
 	const createRoom = () => {
+		if (!username.value.trim()) {
+			flashUsernameInvalid();
+			return;
+		}
+
 		const id = generateRoomId();
 		room.value = id;
 		connectToRoom();
+	};
+
+	const flashUsernameInvalid = () => {
+		invalidUsername.value = true;
+		setTimeout(() => (invalidUsername.value = false), 1000);
 	};
 
 	const generateRoomId = () => {
