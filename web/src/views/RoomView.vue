@@ -6,7 +6,7 @@
 	const router = useRouter();
 	const roomID = ref(route.query.roomID);
 	const endsAt = ref(0);
-	const expired = ref(true);
+	const expired = ref(false);
 	const message = ref("");
 	const messages = ref([]);
 	const connected = ref(false);
@@ -190,7 +190,7 @@
 				</div>
 			</div>
 			<div
-				v-else-if="expired && !connected"
+				v-else-if="!connected && expired"
 				class="flex flex-col items-center justify-center h-full"
 			>
 				<p class="text-red-400 text-lg">Room has expired.</p>
