@@ -137,11 +137,9 @@
 </script>
 
 <template>
-	<div
-		class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4"
-	>
+	<div class="flex flex-col items-center justify-center h-screen bg-gray-100">
 		<div
-			class="w-full max-w-2xl bg-white rounded-xl shadow p-6 flex flex-col h-[80vh]"
+			class="w-full lg:max-w-2xl bg-white shadow p-6 flex flex-col h-full"
 		>
 			<div
 				v-if="connected"
@@ -163,7 +161,7 @@
 				</div>
 
 				<div
-					class="flex-1 overflow-y-auto border border-gray-400 rounded p-4 mb-4 bg-gray-50 space-y-2"
+					class="flex-1 overflow-y-auto border border-gray-200 rounded p-4 mb-4 bg-gray-50 space-y-2"
 				>
 					<div
 						v-for="(msg, index) in messages"
