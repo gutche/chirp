@@ -4,8 +4,7 @@
 
 	const route = useRoute();
 	const router = useRouter();
-	const room = ref(route.query.id);
-	const username = ref(route.query.username);
+	const roomID = ref(route.query.roomID);
 	const endsAt = ref(0);
 	const expired = ref(true);
 	const message = ref("");
@@ -58,16 +57,19 @@
 	}
 
 	onMounted(() => {
-		const expiration = route.query.expiration;
+		const { expiration, username, create } = route.query;
 
-		if (!expiration) {
-			console.error("Missing expiration timestamp");
-			return;
+		const params = new URLSearchParams({
+			roomID: roomID.value,
+			username: username,
+		});
+
+		if (create && expiration) {
+			params.append("expiration", expiration);
+			params.append("create", create);
 		}
 
-		endsAt.value = parseInt(expiration);
-
-		const url = `ws://localhost:8080/ws?room=${room.value}&username=${username.value}&expiration=${endsAt.value}`;
+		const url = `ws://localhost:8080/ws?${params.toString()}`;
 		socket = new WebSocket(url);
 
 		socket.onopen = () => {
@@ -93,8 +95,21 @@
 			}
 		};
 
-		socket.onclose = () => {
+		socket.onclose = (event) => {
 			connected.value = false;
+
+			if (!expired.value) {
+				expired.value = true;
+				redirectCountdown.value = 3;
+
+				const redirectTimer = setInterval(() => {
+					redirectCountdown.value--;
+					if (redirectCountdown.value <= 0) {
+						clearInterval(redirectTimer);
+						router.push("/home");
+					}
+				}, 1000);
+			}
 		};
 
 		socket.onerror = (err) => {
@@ -134,7 +149,7 @@
 			>
 				<div class="flex justify-between items-center mb-4">
 					<h2 class="text-xl font-semibold text-gray-800">
-						Room: {{ room }}
+						Room: {{ roomID }}
 					</h2>
 					<div class="text-sm text-gray-600">
 						⏳ {{ remainingTime }}
@@ -175,7 +190,7 @@
 				</div>
 			</div>
 			<div
-				v-else-if="expired"
+				v-else-if="expired && !connected"
 				class="flex flex-col items-center justify-center h-full"
 			>
 				<p class="text-red-400 text-lg">Room has expired.</p>

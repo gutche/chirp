@@ -130,15 +130,11 @@
 			return;
 		}
 
-		// Optional: use a default short expiration (e.g., 5 minutes from now)
-		const expiration = Math.floor(Date.now() / 1000) + 300;
-
 		router.push({
 			path: "/room",
 			query: {
-				id: room.value,
+				roomID: room.value,
 				username: username.value,
-				expiration: expiration.toString(),
 			},
 		});
 	};
@@ -149,7 +145,7 @@
 
 		if (totalSeconds <= 0) return;
 
-		const now = Math.floor(Date.now() / 1000); // current time in seconds
+		const now = Math.floor(Date.now() / 1000);
 		const expiration = now + totalSeconds;
 
 		const id = generateRoomId();
@@ -157,9 +153,10 @@
 		router.push({
 			path: "/room",
 			query: {
-				id,
+				roomID: id,
 				username: username.value,
-				expiration: expiration.toString(), // send as string
+				expiration: expiration.toString(),
+				create: true,
 			},
 		});
 	};
