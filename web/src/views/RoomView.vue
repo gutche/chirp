@@ -69,7 +69,9 @@
 			params.append("create", create);
 		}
 
-		const url = `ws://localhost:8080/ws?${params.toString()}`;
+		const { VITE_URL } = import.meta.env;
+
+		const url = `${VITE_URL}/ws?${params.toString()}`;
 		socket = new WebSocket(url);
 
 		socket.onopen = () => {
