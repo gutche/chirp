@@ -14,6 +14,9 @@ importers:
       vue-router:
         specifier: '4'
         version: 4.5.0(vue@3.5.13)
+      vue-scroll-picker:
+        specifier: ^2.0.0
+        version: 2.0.0
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.2.3
@@ -908,6 +911,9 @@ packages:
     peerDependencies:
       vue: ^3.2.0
 
+  vue-scroll-picker@2.0.0:
+    resolution: {integrity: sha512-GLPiwga0zZvTJoYzQjreVbmRBpOZTzMLqyjYksh3vvsNAJlTDJMc7bA7Owd+ROGz/oQJO23k+dwWsHk0IxwRZw==}
+
   vue@3.5.13:
     resolution: {integrity: sha512-wmeiSMxkZCSc+PM2w2VRsOYAZC8GdipNFRTsLSfodVqI9mbejKeXEGr8SckuLnrQPGe3oJN5c3K0vpoU9q/wCQ==}
     peerDependencies:
@@ -1766,6 +1772,8 @@ snapshots:
     dependencies:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13
+
+  vue-scroll-picker@2.0.0: {}
 
   vue@3.5.13:
     dependencies:

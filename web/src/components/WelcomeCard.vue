@@ -1,10 +1,12 @@
 <template>
 	<div class="flex flex-col items-center justify-center min-h-screen p-6">
 		<div
-			v-if="!connected"
 			class="w-full max-w-sm bg-white rounded-2xl shadow-md p-6 space-y-4"
 		>
-			<div class="flex flex-col">
+			<div
+				v-if="!showTimerPicker"
+				class="flex flex-col"
+			>
 				<h1 class="self-center mb-6 text-lg text-gray-700 font-medium">
 					Join or create a room and enjoy!
 				</h1>
@@ -13,7 +15,6 @@
 					alt="Chirp logo"
 					class="w-20 mb-6 self-center"
 				/>
-
 				<label
 					for="username"
 					class="text-gray-700 font-medium mb-1"
@@ -62,81 +63,53 @@
 					Create a room
 				</button>
 			</div>
-		</div>
-
-		<div
-			v-else
-			class="w-full max-w-lg bg-white rounded-2xl shadow-md p-6 flex flex-col h-[80vh]"
-		>
-			<!-- Chat View -->
-			<h2 class="text-xl font-semibold text-gray-800 mb-4">
-				Room: {{ room }}
-			</h2>
-
 			<div
-				class="flex-1 overflow-y-auto border rounded p-4 mb-4 bg-gray-50 space-y-2"
+				v-else
+				class="flex flex-col items-center"
 			>
-				<div
-					v-for="(msg, index) in messages"
-					:key="index"
-					class="text-sm"
-				>
-					{{ msg }}
+				<p class="text-gray-700 mb-2">Set Room Timer</p>
+				<div class="flex gap-6 w-[200px]">
+					<VueScrollPicker
+						v-model="hours"
+						:options="hourOptions"
+					/>
+					<span class="self-center">h</span>
+					<VueScrollPicker
+						v-model="minutes"
+						:options="minuteOptions"
+					/>
+					<span class="self-center">m</span>
 				</div>
-			</div>
 
-			<div class="flex gap-2">
-				<input
-					v-model="message"
-					@keyup.enter="sendMessage"
-					class="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					placeholder="Type a message..."
-				/>
 				<button
-					@click="sendMessage"
-					class="bg-blue-500 text-white font-medium px-4 py-2 rounded-md hover:bg-blue-600"
+					@click="startRoomWithTimer"
+					class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
 				>
-					Send
+					Start Room
 				</button>
 			</div>
 		</div>
 	</div>
 </template>
-
 <script setup>
-	import { ref, onBeforeUnmount } from "vue";
+	import { ref } from "vue";
+	import { useRouter } from "vue-router";
+	import { VueScrollPicker } from "vue-scroll-picker";
+	import "vue-scroll-picker/style.css";
 
 	const username = ref("");
 	const invalidUsername = ref(false);
 	const room = ref("");
-	const message = ref("");
-	const messages = ref([]);
-	const connected = ref(false);
 
-	let socket = null;
+	const showTimerPicker = ref(false);
+	const hours = ref(0);
+	const minutes = ref(5);
 
-	const connectToRoom = () => {
-		const url = `ws://localhost:8080/ws?room=${room.value}&username=${username.value}`;
-		socket = new WebSocket(url);
+	const hourOptions = Array.from({ length: 24 }, (_, i) => i);
 
-		socket.onopen = () => {
-			console.log("✅ WebSocket connected");
-			connected.value = true;
-		};
+	const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
-		socket.onmessage = (event) => {
-			messages.value.push(event.data);
-		};
-
-		socket.onclose = () => {
-			console.log("🔌 WebSocket disconnected");
-			connected.value = false;
-		};
-
-		socket.onerror = (err) => {
-			console.error("❌ WebSocket error:", err);
-		};
-	};
+	const router = useRouter();
 
 	const createRoom = () => {
 		if (!username.value.trim()) {
@@ -144,9 +117,51 @@
 			return;
 		}
 
+		showTimerPicker.value = true;
+	};
+
+	const connectToRoom = () => {
+		if (!username.value.trim()) {
+			flashUsernameInvalid();
+			return;
+		}
+
+		if (!room.value.trim() || room.value.length < 6) {
+			return;
+		}
+
+		// Optional: use a default short expiration (e.g., 5 minutes from now)
+		const expiration = Math.floor(Date.now() / 1000) + 300;
+
+		router.push({
+			path: "/room",
+			query: {
+				id: room.value,
+				username: username.value,
+				expiration: expiration.toString(),
+			},
+		});
+	};
+
+	const startRoomWithTimer = () => {
+		const totalSeconds =
+			parseInt(hours.value) * 3600 + parseInt(minutes.value) * 60;
+
+		if (totalSeconds <= 0) return;
+
+		const now = Math.floor(Date.now() / 1000); // current time in seconds
+		const expiration = now + totalSeconds;
+
 		const id = generateRoomId();
-		room.value = id;
-		connectToRoom();
+
+		router.push({
+			path: "/room",
+			query: {
+				id,
+				username: username.value,
+				expiration: expiration.toString(), // send as string
+			},
+		});
 	};
 
 	const flashUsernameInvalid = () => {
@@ -157,15 +172,4 @@
 	const generateRoomId = () => {
 		return Math.random().toString(36).substring(2, 10); // 8-char random string
 	};
-
-	const sendMessage = () => {
-		if (socket && message.value.trim() !== "") {
-			socket.send(message.value);
-			message.value = "";
-		}
-	};
-
-	onBeforeUnmount(() => {
-		if (socket) socket.close();
-	});
 </script>
