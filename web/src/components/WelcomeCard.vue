@@ -47,14 +47,16 @@
 					/>
 					<button
 						:disabled="room.length < 6 || !username"
-						@click="connectToRoom"
+						@click="joinRoom"
 						class="absolute right-1 top-1 bottom-1 px-3 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						Join
 					</button>
 				</div>
-
-				<hr class="my-4 border-gray-300" />
+				<span class="my-2 min-h-[1.5rem] text-red-500">{{
+					error
+				}}</span>
+				<hr class="my-2 border-gray-300" />
 
 				<button
 					class="w-full bg-blue-500 text-white font-medium py-2 rounded-md hover:bg-blue-600 transition-colors"
@@ -100,7 +102,7 @@
 	const username = ref("");
 	const invalidUsername = ref(false);
 	const room = ref("");
-
+	const error = ref("");
 	const showTimerPicker = ref(false);
 	const hours = ref(0);
 	const minutes = ref(5);
@@ -120,7 +122,7 @@
 		showTimerPicker.value = true;
 	};
 
-	const connectToRoom = () => {
+	const joinRoom = async () => {
 		if (!username.value.trim()) {
 			flashUsernameInvalid();
 			return;
@@ -128,6 +130,21 @@
 
 		if (!room.value.trim() || room.value.length < 6) {
 			return;
+		}
+
+		try {
+			const response = await fetch(
+				`http://localhost:8080/ws/check?roomID=${room.value}`
+			);
+			if (response.status === 404) {
+				error.value = "Room doesn't exist";
+				setTimeout(() => {
+					error.value = "";
+				}, 3000);
+				return;
+			}
+		} catch (error) {
+			console.error("Failed to join room:", error.message);
 		}
 
 		router.push({

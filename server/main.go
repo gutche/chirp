@@ -12,6 +12,7 @@ var rooms = make(map[string]*Room) // room ID -> Room
 
 func main() {
 	http.HandleFunc("/ws", handleConnections)
+	http.HandleFunc("/ws/check", withCORS(checkRoom))
 
 	log.Println("Server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -90,3 +91,31 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	go client.WritePump()
 }
 
+func checkRoom(w http.ResponseWriter, r *http.Request) {
+    roomID := r.URL.Query().Get("roomID")
+    if roomID == "" {
+        http.Error(w, "Missing roomID", http.StatusBadRequest)
+        return
+    }
+    if _, ok := rooms[roomID]; !ok {
+        http.Error(w, "Room does not exist", http.StatusNotFound)
+        return
+    }
+    w.WriteHeader(http.StatusOK)
+}
+
+func withCORS(h http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+        
+        // Handle preflight requests
+        if r.Method == "OPTIONS" {
+            w.WriteHeader(http.StatusOK)
+            return
+        }
+
+        h(w, r)
+    }
+}
